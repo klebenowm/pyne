@@ -576,13 +576,14 @@ def _traversal(nuc, A, phi, t, out, tol, tree, depth = None):
     for child in prod_dict.keys():
         # Grow matrix
         B = _grow_matrix(A, prod_dict[child], _get_destruction(child, phi))
+        C = _grow_matrix(B, _get_destruction(child, phi), 0)
         # Create initial density vector
-        n = B.shape[0]
+        n = C.shape[0]
         N0 = np.zeros((n,1))
         N0[0] = 1
         # Compute matrix exponential and dot with density vector
-        eB = _matrix_exp(B, t)
-        N_final = np.dot(eB, N0)
+        eC = _matrix_exp(C, t)
+        N_final = np.dot(eC, N0)
         # Log child
         if tree:
             _tree_log(depth+1, child, N_final[-1], tree)
@@ -594,6 +595,11 @@ def _traversal(nuc, A, phi, t, out, tol, tree, depth = None):
             else:
                 out = _traversal(child, B, phi, t, out, tol, tree, None)
         # On recursion exit or truncation, write data from this nuclide
+        n = B.shape[0]
+        N0 = np.zeros((n,1))
+        N0[0] = 1
+        eB = _matrix_exp(B, t)
+        N_final = np.dot(eB, N0)
         if child in out.keys():
             out[child] += N_final[-1]
         else:
